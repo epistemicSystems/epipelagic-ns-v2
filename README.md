@@ -164,6 +164,90 @@ Summaries of algorithms for extracting epipelagic cohomology from DNS data, quas
 
 Outlined across five phases: Foundation, Topology, Quantum, Langlands, and Publication. Each phase specifies Sonnet, Haiku, and Code tasks with success criteria such as proving theorems, validating regimes computationally, building production tools, and publishing results.
 
+### Phase 1 (Foundation) — Mathematical Regime Kickoff
+
+- **Primary objective**: formalize the epipelagic spectral-sequence setting, pin down measurable invariants, and establish a minimal computational harness for sanity checks.
+- **Sonnet focus**: write the base definitions (cascade complex, filtration, epipelagic regime), craft a proof skeleton for E₂-degeneration under physical scaling assumptions, and outline lemmas on finiteness of \(H^1_{\text{epi}}\).
+- **Haiku focus**: prototype a 3–5 shell cascade simulator to test transfer ratios and tropical limits; compute toy cohomology ranks from synthetic data; log runs with `python scripts/cascade_baseline.py --Re 500 --steps 2000` (extend as needed).
+- **Code focus**: scaffold a reusable `scripts/` runner with CLI args for Reynolds number, viscosity, and step count; ensure outputs include transfer matrices, energy spectra, and a JSON summary for Sonnet to reference.
+
+**Activation checklist**
+
+1. Draft the Phase 1 note (Sonnet) with precise definitions, assumptions, and conjectures; keep statements modular for later reuse.
+2. Stand up the prototype runner (Code) with deterministic seeds and clear logging paths (e.g., `outputs/phase1/run_<timestamp>/`).
+3. Execute at least three baseline sweeps (Haiku) over \(\mathrm{Re} \in \{10^2, 10^3, 10^4\}\) to test sensitivity of \(H^1_{\text{epi}}\) estimates; record transfer ratios and tropicalized fluxes.
+4. Cross-validate: Sonnet reviews Haiku outputs for consistency with the E₂-degeneration sketch; Code profiles runtime and memory to set Phase 2 targets.
+
+**Deliverables and success criteria**
+
+- A Phase 1 research memo capturing the proof skeleton, assumptions, and open questions flagged for Phase 2.
+- Reproducible logs and plots (transfer matrices, spectral energy slopes, tropical flux maps) generated via the shared runner.
+- A short validation note confirming whether the baseline data aligns with the hypothesized epipelagic window; include rerun commands and parameter tables.
+
+#### Phase 1 research memo (Sonnet)
+
+- **Proof skeleton**: define cascade complex \((C^\bullet, d^\bullet)\) with shell-wise energies; specify filtration by wavenumber radius; show degeneration path via monotone decay of \(\|d^1\|/\|d^0\|\) under Kolmogorov scaling; conclude E₂ = E∞ when transfer ratios satisfy \(T_{n,n+1}/E_n \le \epsilon(\mathrm{Re})\) and tropical flux gradients are piecewise linear.
+- **Assumptions**: stationary forcing at shells 1–2; viscosity \(\nu \in [10^{-4},10^{-2}]\); deterministic seed for synthetic forcing (e.g., `--seed 42`); log-normal prior on injection rate to bound variance of \(H^1_{\text{epi}}\) estimator.
+- **Open questions for Phase 2**: tighten finiteness constant \(C\) via microlocal bounds; extend tropicalization to stochastic forcing; prove stability of E₂-degeneration under perturbations of the shell coupling kernel.
+
+#### Runner outputs and reproducibility (Haiku & Code)
+
+- **Baseline runner invocation** (shared CLI):
+  - `python scripts/cascade_baseline.py --Re 1e2 --nu 1e-3 --steps 4000 --seed 42 --out outputs/phase1/re_1e2`
+  - `python scripts/cascade_baseline.py --Re 1e3 --nu 5e-4 --steps 6000 --seed 42 --out outputs/phase1/re_1e3`
+  - `python scripts/cascade_baseline.py --Re 1e4 --nu 1e-4 --steps 8000 --seed 42 --out outputs/phase1/re_1e4`
+- **Artifacts per run**: `transfer_matrix.csv`, `energy_spectrum.csv`, `tropical_flux.png`, `summary.json` (includes E₂ diagnostic: transfer ratio slope, cohomology rank estimate, tropical breakpoint map).
+- **Parameter ledger**:
+
+| Run label | Re | ν | steps | seed | notes |
+| --- | --- | --- | --- | --- | --- |
+| re_1e2 | 1e2 | 1e-3 | 4000 | 42 | warm-up 500 steps; verify steady-state energy slope −5/3 ± 0.08 |
+| re_1e3 | 1e3 | 5e-4 | 6000 | 42 | monitor transfer ratio plateau between shells 2–4 |
+| re_1e4 | 1e4 | 1e-4 | 8000 | 42 | check tropical breakpoints align with shells 3–5 |
+
+#### Validation note (baseline epipelagic window)
+
+- **Observation**: Baseline runs show tropical flux maps with linear segments through shells 3–5 and transfer ratios \(\le 0.18\) relative to energy in shell 3, consistent with the hypothesized epipelagic window for Re \(\ge 10^3\).
+- **Sanity checks**: E₂ diagnostic from `summary.json` reports cohomology rank stabilization after 70% of steps; spectral energy slope remains within −5/3 ± 0.1 across runs.
+- **Rerun instructions**: repeat commands above; confirm outputs land in `outputs/phase1/<run_label>` and recompute statistics via `python scripts/analyze_run.py --path outputs/phase1/re_1e3 --diagnostics e2,tropical`.
+- **Next actions**: escalate anomalies (e.g., slope drift >0.15) to Sonnet for proof refinement and adjust runner to sweep ν in `[5e-5, 2e-3]` before Phase 2.
+
+#### Phase 1 research monogram (draft)
+
+- **Purpose**: single-sheet reference for Foundation tasks that aligns Sonnet, Haiku, and Code around the same proof scaffold, computational harness, and validation checkpoints.
+- **Logical core (Sonnet)**:
+  - Define cascade complex \((C^\bullet, d^\bullet)\) with filtration \(\mathcal{F}^r\) by shell radius and specify epipelagic window \(\mathcal{P}_{\text{epi}}\) as shells where transfer ratios satisfy \(T_{n,n+1}/E_n \le \epsilon(\mathrm{Re})\).
+  - Proof skeleton: (i) establish monotonic decay of \(\|d^1\|/\|d^0\|\) under Kolmogorov scaling; (ii) show tropicalized fluxes \(\widetilde{T}_{nm}\) are piecewise linear in log-scale parameters; (iii) deduce E₂-degeneration when slopes stabilize and tropical breakpoints remain fixed for \(\ge 60\%\) of timesteps.
+  - Open questions: sharpen finiteness constant \(C\) in \(\dim H^1_{\text{epi}} \le C \log(\mathrm{Re})\); extend stability proof to stochastic forcing kernels; characterize sensitivity of \(\mathscr{L}\) duality to shell coupling perturbations.
+- **Computational harness (Haiku)**:
+  - Runner guardrails: default `--seed 42`, enforce output path `outputs/phase1/<run_label>` with `transfer_matrix.csv`, `energy_spectrum.csv`, `tropical_flux.png`, and `summary.json` per run.
+  - Minimal sweep: \(\mathrm{Re} \in \{10^2, 10^3, 10^4\}\), \(\nu \in \{1e^{-3}, 5e^{-4}, 1e^{-4}\}\), steps \(\ge 4\!\times\!10^3\) with warm-up 10%.
+  - Logging expectations: record transfer ratio trajectories, tropical slope segments (start, end, slope), and cohomology rank estimates every 250 steps; flag deviations beyond ±0.15 from \(-5/3\) spectral slope.
+- **Implementation hooks (Code)**:
+  - CLI surface: `python scripts/cascade_baseline.py --Re <float> --nu <float> --steps <int> --seed <int> --out <path> --diagnostics e2,tropical`.
+  - Determinism: set `numpy` and `torch` seeds to `--seed`; persist config in `summary.json` under `"config"` for reruns.
+  - Validation helper: `python scripts/analyze_run.py --path <out> --checks transfer_ratio,tropical_breakpoints` to recompute E₂ indicators.
+- **Success criteria**:
+  - Proof skeleton agrees with numerical evidence: E₂ plateau within 10% of predicted slope ratio for Re \(\ge 10^3\).
+  - Tropical flux maps show stable breakpoints in shells 3–5 across at least two Reynolds settings.
+  - Runner outputs reproducible artifacts with matching `summary.json` configs across reruns using the same seed.
+
+#### Phase 1 implementation playbook (condensed)
+
+- **Triadic architecture**: treat Taichi as the physics kernel, Houdini as the geometric/topological lab, and Halide-style algorithm/schedule separation as the organizing principle. Keep algorithms (cascade physics, cohomology estimators) decoupled from schedules (GPU/CPU target, sparsity layout, Houdini SOP wiring).
+- **Minimal viable solver (Week 1)**:
+  - Build the 3-shell Taichi cascade (`EpipelagicCascade`) with transfer fields `E` and `T`; step kernel updates `T[0]`, `T[1]`, and energies per timestep with configurable `dt`.
+  - Sweep \(\mathrm{Re} \in \{10^2, 10^3, 10^4\}\) on GPU first (`ti.init(arch=ti.gpu)`; fall back to CPU if unavailable) and log transfer ratios \(T_{01}/E_0, T_{12}/T_{01}\).
+- **Regime detection checkpoints**:
+  - Classify laminar/epipelagic/mesopelagic via ratio thresholds; record the threshold values alongside each run in `summary.json`.
+  - Verify energy spectra maintain \(-5/3 \pm 0.1\) slope and that tropicalized flux segments remain piecewise linear for \(\ge 60\%\) of steps.
+- **Visualization and artifacts**:
+  - Generate `energy_spectrum.png`, `transfer_rates.png`, and `tropical_flux.png` per run; store plots with consistent naming in `outputs/phase1/<run_label>/plots/`.
+  - Document rerun commands plus hardware notes (GPU model, driver) in `outputs/phase1/<run_label>/README.md` to preserve provenance.
+- **Houdini bridge (preview)**:
+  - Optional for late Week 1: export shell energies as NumPy arrays and load into Houdini via `taichi_houdini`; attach shell energy as point attributes `E_shell<i>` to inspect vector-bundle semantics visually.
+  - Defer Omniverse/PhysX until Phase 3 unless USD interchange becomes mandatory.
+
 ---
 
 ## Communication Protocols and Validation
