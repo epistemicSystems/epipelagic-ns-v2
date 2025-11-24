@@ -12,6 +12,12 @@ This prompt coordinates three specialized Claude agents:
 - **Claude Haiku 4.5 (Rapid Prototyper)**: Quick iterations, code generation, computational experiments
 - **Claude Code (Implementation Specialist)**: Production-grade implementations, optimization, debugging
 
+## Implementation Strategy (Concise)
+
+- **Roadmap**: Phased build from 3-shell Taichi prototype to Houdini topology, quasi-particle operators, and tropical phase maps. See [`docs/implementation_strategy.md`](docs/implementation_strategy.md) for actionable steps and outputs by phase.
+- **Algorithm/Schedule Split**: Keep physics kernels independent from execution target (GPU/CPU) and Houdini wiring; adjust schedules without changing cascade logic.
+- **Reproducibility**: Standardize seeds, CLI flags, and output layout (`outputs/phase1/<run_label>/`) with per-run commands recorded alongside artifacts.
+
 ---
 
 ## Core Research Framework
